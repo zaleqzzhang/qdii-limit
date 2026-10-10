@@ -22,7 +22,7 @@ QDII Limit Monitor 是一个用于查看 QDII 基金申购状态与日累计申�
 - 点击基金代码或基金名称可打开东方财富基金详情页。
 - 支持明暗主题切换。
 - 服务端 API 响应带 CDN 缓存策略，适合部署到 Vercel。
-- 每日定时检查申购状态与限额变化，通过 PushPlus 推送到微信。
+- 每日定时检查申购状态与限额变化，通过 PushPlus 多渠道推送（微信公众号、邮箱等，可配置）。
 
 ## 数据口径说明
 
@@ -158,7 +158,7 @@ Cache-Control: s-maxage=21600, stale-while-revalidate=43200
 `/api/check` 由 Vercel Cron 每天北京时间 09:10（`10 1 * * *` UTC）触发：
 
 1. 拉取东方财富最新数据，与 Upstash Redis 中的上次快照对比。
-2. 出现以下变化时通过 PushPlus 推送到微信：
+2. 出现以下变化时通过 PushPlus 推送（渠道由 `PUSHPLUS_CHANNELS` 配置，默认微信公众号）：
    - 申购状态变化（恢复申购 / 暂停申购）。
    - 日累计限额数值变化（收紧 / 放宽）。
    - 新增 QDII 基金。
@@ -171,6 +171,8 @@ Cache-Control: s-maxage=21600, stale-while-revalidate=43200
 | 变量 | 说明 |
 | --- | --- |
 | `PUSHPLUS_TOKEN` | PushPlus 用户 token（pushplus.plus 注册并实名后获取） |
+| `PUSHPLUS_CHANNELS` | 推送渠道，逗号分隔，默认 `wechat`；可选 `mail`、`app`、`webhook` 等（[多渠道接口文档](https://pushplus.plus/doc/guide/api.html)） |
+| `PUSHPLUS_MAIL_OPTION` | `mail` 渠道的邮箱配置编码（pushplus.plus 个人中心 → 渠道设置 → 邮箱 中创建） |
 | `CRON_SECRET` | 定时任务鉴权密钥；设置后 Vercel 会在 cron 请求中自动附带 Bearer 头 |
 | `UPSTASH_REDIS_REST_URL` | Upstash Redis REST 地址（Vercel 市场集成自动创建，注入名为 `KV_REST_API_URL`，两者兼容） |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST 令牌（Vercel 市场集成自动创建，注入名为 `KV_REST_API_TOKEN`，两者兼容） |
@@ -179,8 +181,9 @@ Cache-Control: s-maxage=21600, stale-while-revalidate=43200
 
 1. Vercel 后台 → 项目 → Storage → 集成 Upstash Redis（免费额度即可）。
 2. `vercel env add PUSHPLUS_TOKEN production`，粘贴 PushPlus token。
-3. `vercel env add CRON_SECRET production`，填一个随机字符串。
-4. `vercel env pull .env.local` 同步到本地后可直接测试。
+3. 如需邮箱渠道：先在 pushplus.plus 个人中心 → 渠道设置 → 邮箱 中绑定邮箱并获得配置编码，然后 `vercel env add PUSHPLUS_CHANNELS production` 填 `wechat,mail`，`vercel env add PUSHPLUS_MAIL_OPTION production` 填该编码。
+4. `vercel env add CRON_SECRET production`，填一个随机字符串。
+5. `vercel env pull .env.local` 同步到本地后可直接测试。
 
 本地测试：
 
@@ -190,7 +193,7 @@ pnpm dev
 # dry 模式：只渲染消息，不发送、不写快照
 curl -H "Authorization: Bearer $CRON_SECRET" "http://localhost:3000/api/check?dry=1"
 
-# 正式触发：会写快照并推送到微信
+# 正式触发：会写快照并推送通知
 curl -H "Authorization: Bearer $CRON_SECRET" "http://localhost:3000/api/check"
 ```
 
