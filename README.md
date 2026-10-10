@@ -172,7 +172,7 @@ Cache-Control: s-maxage=21600, stale-while-revalidate=43200
 | --- | --- |
 | `PUSHPLUS_TOKEN` | PushPlus 用户 token（pushplus.plus 注册并实名后获取） |
 | `PUSHPLUS_CHANNELS` | 推送渠道，逗号分隔，默认 `wechat`；可选 `mail`、`app`、`webhook` 等（[多渠道接口文档](https://pushplus.plus/doc/guide/api.html)） |
-| `PUSHPLUS_MAIL_OPTION` | `mail` 渠道的邮箱配置编码（pushplus.plus 个人中心 → 渠道设置 → 邮箱 中创建） |
+| `PUSHPLUS_MAIL_OPTION` | 可选，`mail` 渠道自定义发件邮箱的配置编码（个人中心 → 渠道配置 → 邮件，需 SMTP 信息）；不填用 PushPlus 官网邮箱发送，收件邮箱需在公众号「个人中心 → 个人资料 → 邮箱」中绑定 |
 | `CRON_SECRET` | 定时任务鉴权密钥；设置后 Vercel 会在 cron 请求中自动附带 Bearer 头 |
 | `UPSTASH_REDIS_REST_URL` | Upstash Redis REST 地址（Vercel 市场集成自动创建，注入名为 `KV_REST_API_URL`，两者兼容） |
 | `UPSTASH_REDIS_REST_TOKEN` | Upstash Redis REST 令牌（Vercel 市场集成自动创建，注入名为 `KV_REST_API_TOKEN`，两者兼容） |
@@ -181,7 +181,7 @@ Cache-Control: s-maxage=21600, stale-while-revalidate=43200
 
 1. Vercel 后台 → 项目 → Storage → 集成 Upstash Redis（免费额度即可）。
 2. `vercel env add PUSHPLUS_TOKEN production`，粘贴 PushPlus token。
-3. 如需邮箱渠道：先在 pushplus.plus 个人中心 → 渠道设置 → 邮箱 中绑定邮箱并获得配置编码，然后 `vercel env add PUSHPLUS_CHANNELS production` 填 `wechat,mail`，`vercel env add PUSHPLUS_MAIL_OPTION production` 填该编码。
+3. 如需邮箱渠道：先在「pushplus 推送加」公众号 → 功能 → 个人中心 → 个人资料 → 邮箱 中绑定收件邮箱，然后 `vercel env add PUSHPLUS_CHANNELS production` 填 `wechat,mail`（如需自定义发件邮箱，再配置 `PUSHPLUS_MAIL_OPTION`）。
 4. `vercel env add CRON_SECRET production`，填一个随机字符串。
 5. `vercel env pull .env.local` 同步到本地后可直接测试。
 

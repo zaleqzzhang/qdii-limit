@@ -39,8 +39,10 @@ export async function sendPushPlus(params: {
   }
 
   const channels = resolveChannels()
-  // option 与 channel 一一对应，无需配置的渠道用空占位，如 "wechat,mail" → ",163"
-  const option = channels.map(channelOption).join(",")
+  // option 与 channel 一一对应；仅当至少一个渠道配置了编码时才发送 option，
+  // 如 "wechat,mail" + 自定义邮箱编码 163 → ",163"；全空则省略（各渠道走默认配置）
+  const options = channels.map(channelOption)
+  const hasCustomOption = options.some(Boolean)
 
   try {
     const response = await fetch(PUSHPLUS_BATCH_SEND_URL, {
@@ -52,7 +54,7 @@ export async function sendPushPlus(params: {
         content: params.content,
         template: "markdown",
         channel: channels.join(","),
-        ...(option ? { option } : {}),
+        ...(hasCustomOption ? { option: options.join(",") } : {}),
       }),
       signal: AbortSignal.timeout(15_000),
     })
