@@ -7,7 +7,8 @@ import { readSnapshot, writeSnapshot, type FundSnapshot } from "@/lib/snapshot-s
 
 export const runtime = "nodejs"
 export const dynamic = "force-dynamic"
-export const maxDuration = 60
+// 东方财富全量数据从 Vercel 美国机房拉取可能超过 60s，与平台默认上限对齐
+export const maxDuration = 300
 
 // 东方财富返回残缺数据时（如 QDII 清单骤减），跳过检查避免误报大批“新增基金”
 const MIN_QDII_FUNDS = 100
